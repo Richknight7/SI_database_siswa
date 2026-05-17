@@ -506,49 +506,57 @@ export default function Home() {
   if (!isLoggedIn) {
     return (
       <div className="login-bg flex items-center justify-center p-4">
-        {/* Background blobs */}
+        {/* Background decorative elements */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-emerald-500/8 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
           <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+          {/* Geometric accent lines */}
+          <svg className="absolute inset-0 w-full h-full opacity-[0.06]" xmlns="http://www.w3.org/2000/svg">
+            <line x1="0" y1="0" x2="100%" y2="100%" stroke="#0d9488" strokeWidth="1" />
+            <line x1="100%" y1="0" x2="0" y2="100%" stroke="#0d9488" strokeWidth="1" />
+            <circle cx="50%" cy="50%" r="200" fill="none" stroke="#0d9488" strokeWidth="0.5" />
+            <circle cx="50%" cy="50%" r="350" fill="none" stroke="#0d9488" strokeWidth="0.3" />
+            <circle cx="50%" cy="50%" r="500" fill="none" stroke="#0d9488" strokeWidth="0.2" />
+          </svg>
         </div>
 
-        <div className="glass-card-strong w-full max-w-md p-8 relative">
+        <div className="glass-card-login w-full max-w-md p-8 relative z-10">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-18 h-18 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center mb-5 shadow-lg shadow-teal-500/25">
+            <div className="w-18 h-18 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center mb-5 shadow-lg shadow-teal-500/30">
               <GraduationCap className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-lg" style={{ textShadow: '0 2px 12px rgba(13,148,136,0.35)' }}>Sistem Informasi Siswa</h1>
-            <p className="text-teal-200/80 text-sm mt-2 font-semibold tracking-wide uppercase">Student Database Management</p>
+            <h1 className="text-3xl font-extrabold text-white tracking-tight" style={{ textShadow: '0 2px 20px rgba(13,148,136,0.5), 0 0 40px rgba(13,148,136,0.2)' }}>Sistem Informasi Siswa</h1>
+            <p className="text-teal-300 text-sm mt-2 font-bold tracking-[0.15em] uppercase">Student Database Management</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block text-teal-100 text-sm mb-2 font-bold tracking-wide uppercase">Username</label>
+              <label className="block text-teal-300 text-sm mb-2 font-bold tracking-wide uppercase">Username</label>
               <input
                 type="text" value={loginUser} onChange={e => setLoginUser(e.target.value)}
-                className="glass-input w-full px-4 py-3 text-white font-semibold placeholder-white/25 outline-none text-base"
+                className="glass-input-login w-full px-4 py-3 font-semibold outline-none text-base"
                 placeholder="Masukkan username"
               />
             </div>
             <div>
-              <label className="block text-teal-100 text-sm mb-2 font-bold tracking-wide uppercase">Password</label>
+              <label className="block text-teal-300 text-sm mb-2 font-bold tracking-wide uppercase">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'} value={loginPass} onChange={e => setLoginPass(e.target.value)}
-                  className="glass-input w-full px-4 py-3 pr-12 text-white font-semibold placeholder-white/25 outline-none text-base"
+                  className="glass-input-login w-full px-4 py-3 pr-12 font-semibold outline-none text-base"
                   placeholder="Masukkan password"
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-teal-400/60 hover:text-teal-300 transition">
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
 
             {loginError && (
-              <div className="bg-red-500/15 border border-red-500/30 rounded-lg px-4 py-3 text-red-300 text-sm">
+              <div className="bg-red-500/20 border border-red-500/40 rounded-lg px-4 py-3 text-red-300 text-sm font-semibold">
                 {loginError}
               </div>
             )}
@@ -564,7 +572,7 @@ export default function Home() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-teal-200/60 text-xs font-medium">Hint: admin / admin123</p>
+            <p className="text-teal-400/70 text-xs font-semibold">Hint: admin / admin123</p>
           </div>
         </div>
       </div>
@@ -2061,6 +2069,7 @@ export default function Home() {
       <div className="bg-blob-1" />
       <div className="bg-blob-2" />
       <div className="bg-blob-3" />
+      <div className="bg-abstract-pattern" />
 
       {/* Sidebar */}
       {renderSidebar()}
