@@ -99,6 +99,7 @@ export default function Home() {
   const [siswaJkFilter, setSiswaJkFilter] = useState('');
   const [siswaRpp, setSiswaRpp] = useState(10);
   const [nilaiSemester, setNilaiSemester] = useState('');
+  const [activeNilaiSem, setActiveNilaiSem] = useState<number | null>(null);
   const [nilaiSearch, setNilaiSearch] = useState('');
   const [nilaiRpp, setNilaiRpp] = useState(10);
   const [nilaiPage, setNilaiPage] = useState(1);
@@ -203,11 +204,19 @@ export default function Home() {
     if (!currentAngkatanId) return;
     try {
       const params = new URLSearchParams({ angkatanId: String(currentAngkatanId) });
-      if (nilaiSemester) params.set('semester', nilaiSemester);
+      // Always fetch all semesters for tab navigation
       const d = await api(`/api/nilai?${params}`);
       setNilaiData(d);
     } catch (e: any) { toast.error(e.message); }
-  }, [api, currentAngkatanId, nilaiSemester]);
+  }, [api, currentAngkatanId]);
+
+  // Auto-select first semester tab when nilai data loads
+  useEffect(() => {
+    if (nilaiData && activeNilaiSem === null) {
+      const sems = Object.keys(nilaiData.mapelBySem).map(Number).sort((a, b) => a - b);
+      if (sems.length > 0) setActiveNilaiSem(sems[0]);
+    }
+  }, [nilaiData, activeNilaiSem]);
 
   const fetchSettings = useCallback(async () => {
     try { const d = await api('/api/settings'); setSettingsData(d); setSettingsForm(d.school); setAdminForm({ displayName: d.admin.displayName, username: d.admin.username, password: '', confirmPassword: '' }); } catch (e: any) { toast.error(e.message); }
@@ -273,7 +282,7 @@ export default function Home() {
 
   const navigateToNilai = (angkatanId: number, year: number) => {
     setCurrentPage('nilai', angkatanId, year);
-    setNilaiSearch(''); setNilaiSemester(''); setNilaiPage(1); setNilaiEdits({});
+    setNilaiSearch(''); setNilaiSemester(''); setActiveNilaiSem(null); setNilaiPage(1); setNilaiEdits({});
     setMobileSidebarOpen(false);
   };
 
@@ -810,24 +819,24 @@ export default function Home() {
           <div className="glass-card p-5 glow-hover">
             <h3 className="text-sm font-semibold mb-4">Ringkasan per Angkatan</h3>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm border-collapse">
                 <thead>
-                  <tr className="border-b border-border/50">
-                    <th className="text-left py-3 px-3 font-semibold text-muted-foreground text-xs">Angkatan</th>
-                    <th className="text-center py-3 px-3 font-semibold text-muted-foreground text-xs">Total</th>
-                    <th className="text-center py-3 px-3 font-semibold text-muted-foreground text-xs">Laki-laki</th>
-                    <th className="text-center py-3 px-3 font-semibold text-muted-foreground text-xs">Perempuan</th>
-                    <th className="text-center py-3 px-3 font-semibold text-muted-foreground text-xs">Kelas</th>
+                  <tr className="bg-teal-500/6 dark:bg-teal-500/4">
+                    <th className="text-left py-3 px-3 font-semibold text-muted-foreground text-xs border border-border/20">Angkatan</th>
+                    <th className="text-center py-3 px-3 font-semibold text-muted-foreground text-xs border border-border/20">Total</th>
+                    <th className="text-center py-3 px-3 font-semibold text-muted-foreground text-xs border border-border/20">Laki-laki</th>
+                    <th className="text-center py-3 px-3 font-semibold text-muted-foreground text-xs border border-border/20">Perempuan</th>
+                    <th className="text-center py-3 px-3 font-semibold text-muted-foreground text-xs border border-border/20">Kelas</th>
                   </tr>
                 </thead>
                 <tbody>
                   {angkatanStats.map((s) => (
-                    <tr key={s.angkatan.id} className="glass-table-row border-b border-border/20">
-                      <td className="py-3 px-3 font-medium">{s.angkatan.year}</td>
-                      <td className="py-3 px-3 text-center">{s.total}</td>
-                      <td className="py-3 px-3 text-center text-teal-600 dark:text-teal-400">{s.l}</td>
-                      <td className="py-3 px-3 text-center text-orange-600 dark:text-orange-400">{s.p}</td>
-                      <td className="py-3 px-3 text-center">{s.kelasCount}</td>
+                    <tr key={s.angkatan.id} className="glass-table-row">
+                      <td className="py-2.5 px-3 font-medium border border-border/10">{s.angkatan.year}</td>
+                      <td className="py-2.5 px-3 text-center font-semibold border border-border/10">{s.total}</td>
+                      <td className="py-2.5 px-3 text-center text-teal-600 dark:text-teal-400 border border-border/10">{s.l}</td>
+                      <td className="py-2.5 px-3 text-center text-orange-600 dark:text-orange-400 border border-border/10">{s.p}</td>
+                      <td className="py-2.5 px-3 text-center border border-border/10">{s.kelasCount}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -900,37 +909,37 @@ export default function Home() {
         {/* Table */}
         <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="bg-teal-500/8 dark:bg-teal-500/5 border-b border-border/30">
-                  <th className="text-left py-3 px-3 font-semibold text-xs w-10">#</th>
-                  <th className="text-left py-3 px-3 font-semibold text-xs">NISN</th>
-                  <th className="text-left py-3 px-3 font-semibold text-xs">Nama</th>
-                  <th className="text-center py-3 px-3 font-semibold text-xs w-14">JK</th>
-                  <th className="text-left py-3 px-3 font-semibold text-xs">Kelas</th>
-                  <th className="text-left py-3 px-3 font-semibold text-xs hidden md:table-cell">Tempat Lahir</th>
-                  <th className="text-left py-3 px-3 font-semibold text-xs hidden lg:table-cell">Tgl Lahir</th>
-                  <th className="text-center py-3 px-3 font-semibold text-xs w-14 hidden sm:table-cell">Foto</th>
-                  <th className="text-center py-3 px-3 font-semibold text-xs w-28">Aksi</th>
+                <tr className="bg-teal-500/8 dark:bg-teal-500/5">
+                  <th className="text-left py-3 px-3 font-semibold text-xs border border-border/20 w-10">#</th>
+                  <th className="text-left py-3 px-3 font-semibold text-xs border border-border/20">NISN</th>
+                  <th className="text-left py-3 px-3 font-semibold text-xs border border-border/20">Nama</th>
+                  <th className="text-center py-3 px-3 font-semibold text-xs border border-border/20 w-14">JK</th>
+                  <th className="text-left py-3 px-3 font-semibold text-xs border border-border/20">Kelas</th>
+                  <th className="text-left py-3 px-3 font-semibold text-xs border border-border/20 hidden md:table-cell">Tempat Lahir</th>
+                  <th className="text-left py-3 px-3 font-semibold text-xs border border-border/20 hidden lg:table-cell">Tgl Lahir</th>
+                  <th className="text-center py-3 px-3 font-semibold text-xs border border-border/20 w-14 hidden sm:table-cell">Foto</th>
+                  <th className="text-center py-3 px-3 font-semibold text-xs border border-border/20 w-28">Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {siswaList.length === 0 ? (
-                  <tr><td colSpan={9} className="py-12 text-center text-muted-foreground">Tidak ada data siswa</td></tr>
+                  <tr><td colSpan={9} className="py-12 text-center text-muted-foreground border border-border/10">Tidak ada data siswa</td></tr>
                 ) : siswaList.map((s, i) => (
-                  <tr key={s.id} className="glass-table-row border-b border-border/15">
-                    <td className="py-3 px-3 text-muted-foreground">{(siswaPage - 1) * siswaRpp + i + 1}</td>
-                    <td className="py-3 px-3 font-mono text-xs">{s.nisn}</td>
-                    <td className="py-3 px-3 font-medium">{s.name}</td>
-                    <td className="py-3 px-3 text-center">
+                  <tr key={s.id} className="glass-table-row">
+                    <td className="py-2.5 px-3 text-muted-foreground border border-border/10">{(siswaPage - 1) * siswaRpp + i + 1}</td>
+                    <td className="py-2.5 px-3 font-mono text-xs border border-border/10">{s.nisn}</td>
+                    <td className="py-2.5 px-3 font-medium border border-border/10">{s.name}</td>
+                    <td className="py-2.5 px-3 text-center border border-border/10">
                       <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${s.jk === 'L' ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'}`}>
                         {s.jk}
                       </span>
                     </td>
-                    <td className="py-3 px-3">{s.kelas?.name}</td>
-                    <td className="py-3 px-3 hidden md:table-cell text-muted-foreground">{s.birthPlace || '-'}</td>
-                    <td className="py-3 px-3 hidden lg:table-cell text-muted-foreground">{s.birthDate || '-'}</td>
-                    <td className="py-3 px-3 text-center hidden sm:table-cell">
+                    <td className="py-2.5 px-3 border border-border/10">{s.kelas?.name}</td>
+                    <td className="py-2.5 px-3 hidden md:table-cell text-muted-foreground border border-border/10">{s.birthPlace || '-'}</td>
+                    <td className="py-2.5 px-3 hidden lg:table-cell text-muted-foreground border border-border/10">{s.birthDate || '-'}</td>
+                    <td className="py-2.5 px-3 text-center hidden sm:table-cell border border-border/10">
                       {s.foto ? (
                         <img src={s.foto} alt={s.name} className="w-8 h-8 rounded-lg object-cover mx-auto" />
                       ) : (
@@ -939,7 +948,7 @@ export default function Home() {
                         </div>
                       )}
                     </td>
-                    <td className="py-3 px-3">
+                    <td className="py-2.5 px-3 border border-border/10">
                       <div className="flex items-center justify-center gap-1">
                         <button onClick={() => openCvModal(s.id)} title="CV" className="p-1.5 rounded-lg hover:bg-teal-500/10 text-teal-600 dark:text-teal-400 transition">
                           <FileText className="w-4 h-4" />
@@ -986,6 +995,9 @@ export default function Home() {
 
     const { siswa, mapelBySem } = nilaiData;
     const semesters = Object.keys(mapelBySem).map(Number).sort((a, b) => a - b);
+    const currentSem = activeNilaiSem ?? (semesters[0] ?? 1);
+    const semColor = SEM_COLORS[(currentSem - 1) % SEM_COLORS.length];
+    const currentMapel = mapelBySem[currentSem] ?? [];
 
     // Apply search filter
     const filteredSiswa = siswa.filter(s => {
@@ -995,16 +1007,20 @@ export default function Home() {
     });
 
     // Paginate
-    const totalNilaiPages = Math.ceil(filteredSiswa.length / nilaiRpp);
-    const paginatedSiswa = filteredSiswa.slice((nilaiPage - 1) * nilaiRpp, nilaiPage * nilaiRpp);
+    const totalNilaiPages = Math.max(1, Math.ceil(filteredSiswa.length / nilaiRpp));
+    const safePage = Math.min(nilaiPage, totalNilaiPages);
+    const paginatedSiswa = filteredSiswa.slice((safePage - 1) * nilaiRpp, safePage * nilaiRpp);
 
-    // Filter mapel by semester
-    const filteredMapelBySem: Record<number, Mapel[]> = {};
-    for (const [sem, mapels] of Object.entries(mapelBySem)) {
-      if (!nilaiSemester || sem === nilaiSemester) {
-        filteredMapelBySem[parseInt(sem)] = mapels;
-      }
-    }
+    // Calculate per-student average for current semester
+    const getStudentAvg = (s: SiswaRow & { nilaiMap: Record<number, number> }) => {
+      const mapelIds = currentMapel.map(m => m.id);
+      const vals = mapelIds.map(mid => {
+        const key = `${s.id}-${mid}`;
+        return nilaiEdits[key] !== undefined ? nilaiEdits[key] : (s.nilaiMap[mid] ?? 0);
+      });
+      if (vals.length === 0) return 0;
+      return vals.reduce((a: number, b: number) => a + b, 0) / vals.length;
+    };
 
     return (
       <div className="space-y-4">
@@ -1025,113 +1041,189 @@ export default function Home() {
             </select>
             <div className="flex-1" />
             {Object.keys(nilaiEdits).length > 0 && (
-              <span className="text-xs text-amber-600 dark:text-amber-400">
-                {Object.keys(nilaiEdits).length} perubahan
+              <span className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                {Object.keys(nilaiEdits).length} perubahan belum disimpan
               </span>
             )}
-            <button onClick={handleSaveNilai} disabled={loading}
-              className="glass-btn px-4 py-1.5 text-xs font-medium flex items-center gap-1.5 bg-teal-500/20 border-teal-500/30 text-teal-700 dark:text-teal-300">
-              <Save className="w-3.5 h-3.5" /> Simpan
+            <button onClick={handleSaveNilai} disabled={loading || Object.keys(nilaiEdits).length === 0}
+              className="glass-btn px-4 py-1.5 text-xs font-medium flex items-center gap-1.5 bg-teal-500/20 border-teal-500/30 text-teal-700 dark:text-teal-300 disabled:opacity-40">
+              <Save className="w-3.5 h-3.5" /> Simpan Perubahan
             </button>
           </div>
         </div>
 
-        {/* Search & Filter */}
+        {/* Search */}
         <div className="glass-card p-4">
           <div className="flex flex-wrap gap-3">
             <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input value={nilaiSearch} onChange={e => setNilaiSearch(e.target.value)}
+              <input value={nilaiSearch} onChange={e => { setNilaiSearch(e.target.value); setNilaiPage(1); }}
                 placeholder="Cari nama atau NISN..."
                 className="glass-input w-full pl-9 pr-4 py-2 text-sm outline-none" />
             </div>
-            <select value={nilaiSemester} onChange={e => setNilaiSemester(e.target.value)}
-              className="glass-input px-3 py-2 text-sm outline-none bg-transparent">
-              <option value="" className="bg-background">Semua Semester</option>
-              {semesters.map(s => <option key={s} value={String(s)} className="bg-background">Semester {s}</option>)}
-            </select>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="glass-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-teal-500/8 dark:bg-teal-500/5 border-b border-border/30">
-                  <th className="text-left py-3 px-3 font-semibold text-xs w-10 sticky left-0 bg-teal-500/8 dark:bg-teal-500/5 z-10">#</th>
-                  <th className="text-left py-3 px-3 font-semibold text-xs sticky left-10 bg-teal-500/8 dark:bg-teal-500/5 z-10 min-w-[140px]">Nama</th>
-                  <th className="text-left py-3 px-3 font-semibold text-xs sticky left-[190px] bg-teal-500/8 dark:bg-teal-500/5 z-10 min-w-[60px]">Kelas</th>
-                  {Object.entries(filteredMapelBySem).map(([sem, mapels]) => (
-                    <React.Fragment key={sem}>
-                      <th colSpan={mapels.length}
-                        className="text-center py-2 px-2 text-xs font-bold border-l border-border/20"
-                        style={{ backgroundColor: SEM_COLORS[(parseInt(sem) - 1) % SEM_COLORS.length].bg, color: SEM_COLORS[(parseInt(sem) - 1) % SEM_COLORS.length].hd }}>
-                        Semester {sem}
-                      </th>
-                    </React.Fragment>
-                  ))}
-                </tr>
-                <tr className="border-b border-border/30">
-                  <th className="py-2 px-3 sticky left-0 bg-background z-10" />
-                  <th className="py-2 px-3 sticky left-10 bg-background z-10" />
-                  <th className="py-2 px-3 sticky left-[190px] bg-background z-10" />
-                  {Object.entries(filteredMapelBySem).map(([sem, mapels]) => (
-                    mapels.map(m => (
-                      <th key={m.id} className="text-center py-2 px-1 text-xs font-medium border-l border-border/10 min-w-[70px]"
-                        style={{ backgroundColor: SEM_COLORS[(parseInt(sem) - 1) % SEM_COLORS.length].bg + '60' }}>
-                        <div className="truncate max-w-[70px]" title={m.name}>{m.name}</div>
-                      </th>
-                    ))
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedSiswa.length === 0 ? (
-                  <tr><td colSpan={100} className="py-12 text-center text-muted-foreground">Tidak ada data</td></tr>
-                ) : paginatedSiswa.map((s, i) => (
-                  <tr key={s.id} className="glass-table-row border-b border-border/10">
-                    <td className="py-2 px-3 text-muted-foreground sticky left-0 bg-background z-10">{(nilaiPage - 1) * nilaiRpp + i + 1}</td>
-                    <td className="py-2 px-3 font-medium sticky left-10 bg-background z-10">{s.name}</td>
-                    <td className="py-2 px-3 text-muted-foreground sticky left-[190px] bg-background z-10">{s.kelas?.name}</td>
-                    {Object.entries(filteredMapelBySem).map(([sem, mapels]) => (
-                      mapels.map(m => {
-                        const key = `${s.id}-${m.id}`;
-                        const val = nilaiEdits[key] !== undefined ? nilaiEdits[key] : (s.nilaiMap[m.id] ?? 0);
-                        return (
-                          <td key={m.id} className="py-1 px-0.5 text-center border-l border-border/5">
-                            <input
-                              type="number" min={0} max={100} value={val}
-                              onChange={e => {
-                                const v = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
-                                setNilaiEdits(prev => ({ ...prev, [key]: v }));
-                              }}
-                              className="w-full text-center text-xs py-1 px-1 bg-transparent border border-transparent hover:border-teal-300/30 focus:border-teal-400 rounded outline-none transition"
-                              style={{ backgroundColor: SEM_COLORS[(parseInt(sem) - 1) % SEM_COLORS.length].bg + '30' }}
-                            />
-                          </td>
-                        );
-                      })
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Semester Tabs */}
+        <div className="glass-card p-3">
+          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1">
+            <BookOpen className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <span className="text-xs text-muted-foreground font-medium flex-shrink-0">Semester:</span>
+            {semesters.map(sem => {
+              const sc = SEM_COLORS[(sem - 1) % SEM_COLORS.length];
+              const isActive = sem === currentSem;
+              return (
+                <button key={sem} onClick={() => { setActiveNilaiSem(sem); setNilaiPage(1); }}
+                  className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border-2
+                    ${isActive
+                      ? 'shadow-md scale-105'
+                      : 'hover:scale-102 opacity-60 hover:opacity-90'
+                    }`}
+                  style={{
+                    backgroundColor: isActive ? sc.hd + '18' : 'transparent',
+                    borderColor: isActive ? sc.hd + '50' : 'transparent',
+                    color: isActive ? sc.hd : undefined,
+                    boxShadow: isActive ? `0 2px 12px ${sc.hd}20` : undefined,
+                  }}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: sc.hd }} />
+                    Semester {sem}
+                  </span>
+                </button>
+              );
+            })}
+            {semesters.length === 0 && (
+              <span className="text-xs text-muted-foreground">Belum ada data mapel</span>
+            )}
           </div>
+        </div>
 
-          {/* Pagination */}
-          {totalNilaiPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-border/20">
-              <span className="text-xs text-muted-foreground">Hal {nilaiPage} dari {totalNilaiPages}</span>
-              <div className="flex gap-1">
-                <button onClick={() => setNilaiPage(p => Math.max(1, p - 1))} disabled={nilaiPage === 1}
-                  className="px-3 py-1 rounded-lg text-xs glass-btn disabled:opacity-30">Prev</button>
-                <button onClick={() => setNilaiPage(p => Math.min(totalNilaiPages, p + 1))} disabled={nilaiPage === totalNilaiPages}
-                  className="px-3 py-1 rounded-lg text-xs glass-btn disabled:opacity-30">Next</button>
+        {/* Per-Semester Table */}
+        {currentMapel.length === 0 ? (
+          <div className="glass-card p-12 text-center">
+            <BookOpen className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-muted-foreground text-sm">Tidak ada mata pelajaran untuk Semester {currentSem}</p>
+          </div>
+        ) : (
+          <div className="glass-card overflow-hidden">
+            {/* Semester Header */}
+            <div className="px-4 py-3 border-b-2 flex items-center justify-between"
+              style={{ borderColor: semColor.hd + '30', backgroundColor: semColor.bg + '40' }}>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: semColor.hd }} />
+                <span className="text-sm font-bold" style={{ color: semColor.hd }}>Semester {currentSem}</span>
+                <span className="text-xs text-muted-foreground ml-2">{currentMapel.length} mapel • {filteredSiswa.length} siswa</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <select value={nilaiRpp} onChange={e => { setNilaiRpp(parseInt(e.target.value)); setNilaiPage(1); }}
+                  className="glass-input px-2 py-1 text-xs outline-none bg-transparent">
+                  {[5, 10, 25, 50].map(r => <option key={r} value={r} className="bg-background">{r} / hal</option>)}
+                </select>
               </div>
             </div>
-          )}
-        </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                {/* Header Row 1: Merged "No" + "Siswa" + "Mata Pelajaran" + "Rata-rata" */}
+                <thead>
+                  <tr style={{ backgroundColor: semColor.bg + '60' }}>
+                    <th className="text-center py-2.5 px-2 font-bold text-xs border border-border/30 w-10"
+                      style={{ color: semColor.hd }} rowSpan={2}>No</th>
+                    <th className="text-left py-2.5 px-3 font-bold text-xs border border-border/30 min-w-[160px]"
+                      style={{ color: semColor.hd }} rowSpan={2}>Nama Siswa</th>
+                    <th className="text-left py-2.5 px-3 font-bold text-xs border border-border/30 min-w-[70px]"
+                      style={{ color: semColor.hd }} rowSpan={2}>Kelas</th>
+                    <th className="text-center py-2.5 px-2 font-bold text-xs border border-border/30"
+                      style={{ color: semColor.hd }}
+                      colSpan={currentMapel.length}>Mata Pelajaran</th>
+                    <th className="text-center py-2.5 px-3 font-bold text-xs border border-border/30 min-w-[70px]"
+                      style={{ color: semColor.hd }} rowSpan={2}>Rata²</th>
+                  </tr>
+                  {/* Header Row 2: Individual mapel names */}
+                  <tr style={{ backgroundColor: semColor.bg + '30' }}>
+                    {currentMapel.map(m => (
+                      <th key={m.id} className="text-center py-2 px-2 text-xs font-semibold border border-border/20 min-w-[75px]"
+                        style={{ color: semColor.hd }}>
+                        <div className="truncate max-w-[80px] mx-auto" title={m.name}>{m.name}</div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedSiswa.length === 0 ? (
+                    <tr>
+                      <td colSpan={3 + currentMapel.length + 1} className="py-12 text-center text-muted-foreground border border-border/10">
+                        Tidak ada data siswa
+                      </td>
+                    </tr>
+                  ) : paginatedSiswa.map((s, i) => {
+                    const avg = getStudentAvg(s);
+                    const avgColor = avg >= 80 ? 'text-teal-600 dark:text-teal-400' : avg >= 60 ? 'text-amber-600 dark:text-amber-400' : 'text-red-500';
+                    return (
+                      <tr key={s.id} className="glass-table-row border-b border-border/15 hover:bg-teal-500/3 transition-colors">
+                        <td className="py-2 px-2 text-center text-muted-foreground text-xs border border-border/10">{(safePage - 1) * nilaiRpp + i + 1}</td>
+                        <td className="py-2 px-3 font-medium text-xs border border-border/10">
+                          <div className="truncate max-w-[160px]" title={s.name}>{s.name}</div>
+                        </td>
+                        <td className="py-2 px-3 text-muted-foreground text-xs border border-border/10">{s.kelas?.name}</td>
+                        {currentMapel.map(m => {
+                          const key = `${s.id}-${m.id}`;
+                          const val = nilaiEdits[key] !== undefined ? nilaiEdits[key] : (s.nilaiMap[m.id] ?? 0);
+                          const cellBg = val >= 80 ? 'bg-teal-50/50 dark:bg-teal-900/10' : val >= 60 ? 'bg-amber-50/30 dark:bg-amber-900/5' : val > 0 ? 'bg-red-50/30 dark:bg-red-900/5' : '';
+                          return (
+                            <td key={m.id} className={`py-1 px-0.5 text-center border border-border/10 ${cellBg}`}>
+                              <input
+                                type="number" min={0} max={100} value={val}
+                                onChange={e => {
+                                  const v = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
+                                  setNilaiEdits(prev => ({ ...prev, [key]: v }));
+                                }}
+                                className="w-full text-center text-xs py-1 px-1 bg-transparent border border-transparent hover:border-teal-300/40 focus:border-teal-400 rounded outline-none transition"
+                              />
+                            </td>
+                          );
+                        })}
+                        <td className={`py-2 px-3 text-center text-xs font-bold border border-border/10 ${avgColor}`}>
+                          {avg > 0 ? avg.toFixed(1) : '-'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination - Below the table */}
+            <div className="flex items-center justify-between px-4 py-3 border-t-2 border-border/15">
+              <span className="text-xs text-muted-foreground">
+                Menampilkan {filteredSiswa.length === 0 ? 0 : (safePage - 1) * nilaiRpp + 1}–{Math.min(safePage * nilaiRpp, filteredSiswa.length)} dari {filteredSiswa.length} siswa
+              </span>
+              <div className="flex items-center gap-1">
+                <button onClick={() => setNilaiPage(1)} disabled={safePage === 1}
+                  className="px-2 py-1 rounded-lg text-xs glass-btn disabled:opacity-30">⟪</button>
+                <button onClick={() => setNilaiPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
+                  className="px-3 py-1 rounded-lg text-xs glass-btn disabled:opacity-30">Prev</button>
+                {Array.from({ length: totalNilaiPages }, (_, idx) => idx + 1)
+                  .filter(p => p === 1 || p === totalNilaiPages || Math.abs(p - safePage) <= 1)
+                  .map((p, idx, arr) => (
+                    <React.Fragment key={p}>
+                      {idx > 0 && arr[idx - 1] !== p - 1 && <span className="text-xs text-muted-foreground px-1">…</span>}
+                      <button onClick={() => setNilaiPage(p)}
+                        className={`px-2.5 py-1 rounded-lg text-xs transition ${p === safePage ? 'bg-teal-500 text-white font-bold' : 'glass-btn'}`}>
+                        {p}
+                      </button>
+                    </React.Fragment>
+                  ))}
+                <button onClick={() => setNilaiPage(p => Math.min(totalNilaiPages, p + 1))} disabled={safePage === totalNilaiPages}
+                  className="px-3 py-1 rounded-lg text-xs glass-btn disabled:opacity-30">Next</button>
+                <button onClick={() => setNilaiPage(totalNilaiPages)} disabled={safePage === totalNilaiPages}
+                  className="px-2 py-1 rounded-lg text-xs glass-btn disabled:opacity-30">⟫</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -1196,24 +1288,24 @@ export default function Home() {
         </div>
         <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="bg-teal-500/8 dark:bg-teal-500/5 border-b border-border/30">
-                  <th className="text-left py-3 px-4 font-semibold text-xs w-10">#</th>
-                  <th className="text-left py-3 px-4 font-semibold text-xs">Nama Kelas</th>
-                  <th className="text-center py-3 px-4 font-semibold text-xs">Jumlah Siswa</th>
-                  <th className="text-center py-3 px-4 font-semibold text-xs w-20">Aksi</th>
+                <tr className="bg-teal-500/8 dark:bg-teal-500/5">
+                  <th className="text-left py-3 px-4 font-semibold text-xs border border-border/20 w-10">#</th>
+                  <th className="text-left py-3 px-4 font-semibold text-xs border border-border/20">Nama Kelas</th>
+                  <th className="text-center py-3 px-4 font-semibold text-xs border border-border/20">Jumlah Siswa</th>
+                  <th className="text-center py-3 px-4 font-semibold text-xs border border-border/20 w-20">Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedKelas.length === 0 ? (
-                  <tr><td colSpan={4} className="py-12 text-center text-muted-foreground">Tidak ada data kelas</td></tr>
+                  <tr><td colSpan={4} className="py-12 text-center text-muted-foreground border border-border/10">Tidak ada data kelas</td></tr>
                 ) : paginatedKelas.map((k, i) => (
-                  <tr key={k.id} className="glass-table-row border-b border-border/15">
-                    <td className="py-3 px-4 text-muted-foreground">{(kelasPage - 1) * kelasRpp + i + 1}</td>
-                    <td className="py-3 px-4 font-medium">{k.name}</td>
-                    <td className="py-3 px-4 text-center">{k._count?.siswa || 0}</td>
-                    <td className="py-3 px-4 text-center">
+                  <tr key={k.id} className="glass-table-row">
+                    <td className="py-2.5 px-4 text-muted-foreground border border-border/10">{(kelasPage - 1) * kelasRpp + i + 1}</td>
+                    <td className="py-2.5 px-4 font-medium border border-border/10">{k.name}</td>
+                    <td className="py-2.5 px-4 text-center border border-border/10">{k._count?.siswa || 0}</td>
+                    <td className="py-2.5 px-4 text-center border border-border/10">
                       <button onClick={() => confirmDelete('kelas', k.id, k.name)}
                         className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500 transition">
                         <Trash2 className="w-4 h-4" />
@@ -1274,22 +1366,22 @@ export default function Home() {
         {/* Table */}
         <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="bg-teal-500/8 dark:bg-teal-500/5 border-b border-border/30">
-                  <th className="text-left py-3 px-4 font-semibold text-xs w-10">#</th>
-                  <th className="text-left py-3 px-4 font-semibold text-xs">Nama Mapel</th>
-                  <th className="text-center py-3 px-4 font-semibold text-xs">Semester</th>
-                  <th className="text-center py-3 px-4 font-semibold text-xs w-24">Aksi</th>
+                <tr className="bg-teal-500/8 dark:bg-teal-500/5">
+                  <th className="text-left py-3 px-4 font-semibold text-xs border border-border/20 w-10">#</th>
+                  <th className="text-left py-3 px-4 font-semibold text-xs border border-border/20">Nama Mapel</th>
+                  <th className="text-center py-3 px-4 font-semibold text-xs border border-border/20">Semester</th>
+                  <th className="text-center py-3 px-4 font-semibold text-xs border border-border/20 w-24">Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedMapel.length === 0 ? (
-                  <tr><td colSpan={4} className="py-12 text-center text-muted-foreground">Tidak ada data mapel</td></tr>
+                  <tr><td colSpan={4} className="py-12 text-center text-muted-foreground border border-border/10">Tidak ada data mapel</td></tr>
                 ) : paginatedMapel.map((m, i) => (
-                  <tr key={m.id} className="glass-table-row border-b border-border/15">
-                    <td className="py-3 px-4 text-muted-foreground">{i + 1}</td>
-                    <td className="py-3 px-4">
+                  <tr key={m.id} className="glass-table-row">
+                    <td className="py-2.5 px-4 text-muted-foreground border border-border/10">{i + 1}</td>
+                    <td className="py-2.5 px-4 border border-border/10">
                       {editMapelId === m.id ? (
                         <input value={editMapelName} onChange={e => setEditMapelName(e.target.value)}
                           className="glass-input px-3 py-1 text-sm outline-none w-full"
@@ -1298,7 +1390,7 @@ export default function Home() {
                         <span className="font-medium">{m.name}</span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-center">
+                    <td className="py-2.5 px-4 text-center border border-border/10">
                       {editMapelId === m.id ? (
                         <select value={editMapelSem} onChange={e => setEditMapelSem(parseInt(e.target.value))}
                           className="glass-input px-3 py-1 text-sm outline-none bg-transparent">
@@ -1314,7 +1406,7 @@ export default function Home() {
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-2.5 px-4 border border-border/10">
                       <div className="flex items-center justify-center gap-1">
                         {editMapelId === m.id ? (
                           <>

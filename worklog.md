@@ -74,3 +74,38 @@ Stage Summary:
 - Critical clickability bug fixed - the gradient mesh overlay was intercepting all pointer events
 - All background decoration elements now properly configured with pointer-events: none and z-index: -1
 - Application is now fully interactive
+
+---
+Task ID: 13
+Agent: Main Agent
+Task: Redesign Data Nilai page with per-semester tabs, clearer table borders, merged cells, and improved pagination
+
+Work Log:
+- Added `activeNilaiSem` state for semester tab navigation
+- Modified `fetchNilai` to always fetch ALL semesters (removed semester filter from API call)
+- Added separate `useEffect` to auto-select first semester tab when nilai data loads
+- Completely redesigned `renderNilaiPage`:
+  - Semester tabs with color-coded buttons using SEM_COLORS palette
+  - Per-semester table view showing only one semester at a time
+  - Header row 1 with rowSpan/colSpan merges: No+Nama+Kelas (rowSpan=2), Mata Pelajaran (colSpan=N), Rata-rata (rowSpan=2)
+  - Header row 2: Individual mapel names
+  - Added "Rata-rata" (average) column per student with color coding (green ≥80, amber ≥60, red <60)
+  - Added conditional cell background colors based on grade values
+  - Semester color header bar with mapel count and student count
+  - Improved save button with disabled state when no changes
+  - Animated "perubahan belum disimpan" indicator
+- Improved pagination: moved below table with page number buttons, first/last page buttons, and "Menampilkan X-Y dari Z siswa" text
+- Updated all tables across the app (Siswa, Dashboard Summary, Kelas, Mapel) with:
+  - `border-collapse` class for clean borders
+  - `border border-border/20` on all header cells
+  - `border border-border/10` on all body cells
+  - Consistent `py-2.5 px-3/4` padding
+  - Removed old `border-b border-border/15` approach
+- All lint checks pass with no errors
+
+Stage Summary:
+- Data Nilai page now has semester tabs for easy navigation between semesters
+- Tables use merged header cells (rowSpan/colSpan) for proper structure
+- All tables have clear, visible cell borders
+- Pagination is below the table with improved navigation UI
+- Per-student average column added to nilai table
