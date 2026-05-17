@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model SchoolSettings {
+  id            String @id @default("school")
+  name          String @default("SMA Nusantara")
+  npsn          String @default("")
+  address       String @default("")
+  city          String @default("")
+  phone         String @default("")
+  email         String @default("")
+  accreditation String @default("")
+  logo          String @default("")
+}
+
+model AdminAccount {
+  id          String @id @default("admin")
+  username    String @default("admin")
+  password    String @default("admin123")
+  displayName String @default("Admin")
+}
+
+model Angkatan {
+  id    Int    @id @default(autoincrement())
+  year  Int    @unique
+  siswa Siswa[]
+}
+
+model Kelas {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  siswa Siswa[]
+}
+
+model Mapel {
+  id       Int    @id @default(autoincrement())
+  name     String
+  semester Int
+  nilai    Nilai[]
+}
+
+model Siswa {
+  id           Int    @id @default(autoincrement())
+  name         String
+  nisn         String
+  kelasId      Int
+  jk           String @default("L")
+  angkatanId   Int
+  birthDate    String @default("")
+  birthPlace   String @default("")
+  cita         String @default("")
+  kataMutiara  String @default("")
+  foto         String @default("")
+  kelas        Kelas  @relation(fields: [kelasId], references: [id])
+  angkatan     Angkatan @relation(fields: [angkatanId], references: [id])
+  nilai        Nilai[]
+}
+
+model Nilai {
+  id      Int    @id @default(autoincrement())
+  siswaId Int
+  mapelId Int
+  value   Int    @default(0)
+  siswa   Siswa  @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  mapel   Mapel  @relation(fields: [mapelId], references: [id], onDelete: Cascade)
+
+  @@unique([siswaId, mapelId])
+}
