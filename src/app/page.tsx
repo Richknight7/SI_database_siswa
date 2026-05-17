@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { useAppStore } from '@/lib/store';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
+  LineChart, Line, Area, AreaChart,
 } from 'recharts';
 import {
   Home as HomeIcon, GraduationCap, Users, BookOpen, Settings, ChevronDown, ChevronRight, Moon, Sun, LogOut,
@@ -768,10 +769,10 @@ export default function Home() {
     ];
 
     const statCards = [
-      { label: 'Total Siswa', value: totalSiswa, icon: Users, color: 'from-teal-500 to-teal-600', shadow: 'shadow-teal-500/20' },
-      { label: 'Laki-laki', value: totalL, icon: User, color: 'from-emerald-500 to-emerald-600', shadow: 'shadow-emerald-500/20' },
-      { label: 'Perempuan', value: totalP, icon: Heart, color: 'from-orange-500 to-orange-600', shadow: 'shadow-orange-500/20' },
-      { label: 'Angkatan', value: totalAngkatan, icon: GraduationCap, color: 'from-amber-500 to-amber-600', shadow: 'shadow-amber-500/20' },
+      { label: 'Total Siswa', value: totalSiswa, icon: Users, color: isDark ? 'from-teal-400 to-teal-500' : 'from-teal-500 to-teal-600', shadow: isDark ? 'shadow-teal-400/15' : 'shadow-teal-500/20' },
+      { label: 'Laki-laki', value: totalL, icon: User, color: isDark ? 'from-emerald-400 to-emerald-500' : 'from-emerald-500 to-emerald-600', shadow: isDark ? 'shadow-emerald-400/15' : 'shadow-emerald-500/20' },
+      { label: 'Perempuan', value: totalP, icon: Heart, color: isDark ? 'from-orange-400 to-orange-500' : 'from-orange-500 to-orange-600', shadow: isDark ? 'shadow-orange-400/15' : 'shadow-orange-500/20' },
+      { label: 'Angkatan', value: totalAngkatan, icon: GraduationCap, color: isDark ? 'from-amber-400 to-amber-500' : 'from-amber-500 to-amber-600', shadow: isDark ? 'shadow-amber-400/15' : 'shadow-amber-500/20' },
     ];
 
     return (
@@ -795,59 +796,75 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Charts */}
+        {/* Charts Row 1: Gender Bar Chart + Pie Chart */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="glass-card p-5 lg:col-span-2 glow-hover">
-            <h3 className="text-sm font-semibold mb-4">Siswa per Angkatan</h3>
-            <ResponsiveContainer width="100%" height={280}>
+            <h3 className="text-sm font-semibold mb-3">Jumlah Siswa per Angkatan Berdasarkan Gender</h3>
+            <ResponsiveContainer width="100%" height={200}>
               <BarChart data={barChartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'} />
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }} />
-                <YAxis tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }} />
-                <Tooltip contentStyle={{ background: isDark ? 'rgba(15,23,42,0.9)' : 'rgba(255,255,255,0.95)', border: 'none', borderRadius: '0.75rem', backdropFilter: 'blur(12px)' }} />
-                <Bar dataKey="Laki" fill="#0d9488" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Perempuan" fill="#ea580c" radius={[4, 4, 0, 0]} />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'} />
+                <XAxis dataKey="name" tick={{ fontSize: 10, fill: isDark ? '#94a3b8' : '#64748b' }} />
+                <YAxis tick={{ fontSize: 10, fill: isDark ? '#94a3b8' : '#64748b' }} />
+                <Tooltip contentStyle={{ background: isDark ? 'rgba(15,23,42,0.92)' : 'rgba(255,255,255,0.95)', border: 'none', borderRadius: '0.75rem', backdropFilter: 'blur(12px)', boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.4)' : '0 4px 16px rgba(0,0,0,0.1)' }} />
+                <Bar dataKey="Laki" fill={isDark ? '#2dd4bf' : '#0d9488'} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Perempuan" fill={isDark ? '#fb923c' : '#ea580c'} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
           <div className="glass-card p-5 glow-hover">
-            <h3 className="text-sm font-semibold mb-4">Distribusi Gender</h3>
-            <ResponsiveContainer width="100%" height={280}>
+            <h3 className="text-sm font-semibold mb-3">Distribusi Gender</h3>
+            <ResponsiveContainer width="100%" height={200}>
               <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={4} dataKey="value">
-                  {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={4} dataKey="value">
+                  {pieData.map((entry, i) => <Cell key={i} fill={isDark ? (i === 0 ? '#2dd4bf' : '#fb923c') : entry.color} />)}
                 </Pie>
-                <Tooltip contentStyle={{ background: isDark ? 'rgba(15,23,42,0.9)' : 'rgba(255,255,255,0.95)', border: 'none', borderRadius: '0.75rem' }} />
-                <Legend formatter={(value) => <span style={{ color: isDark ? '#cbd5e1' : '#475569', fontSize: 12 }}>{value}</span>} />
+                <Tooltip contentStyle={{ background: isDark ? 'rgba(15,23,42,0.92)' : 'rgba(255,255,255,0.95)', border: 'none', borderRadius: '0.75rem' }} />
+                <Legend formatter={(value) => <span style={{ color: isDark ? '#cbd5e1' : '#475569', fontSize: 11 }}>{value}</span>} />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Top 3 per Angkatan */}
+        {/* Charts Row 2: Line Chart - Jumlah Siswa per Angkatan */}
+        <div className="glass-card p-5 glow-hover">
+          <h3 className="text-sm font-semibold mb-3">Jumlah Siswa per Angkatan</h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <AreaChart data={angkatanStats.map(s => ({ name: `Angkatan ${s.angkatan.year}`, Total: s.total }))} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <defs>
+                <linearGradient id="totalGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={isDark ? '#2dd4bf' : '#0d9488'} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={isDark ? '#2dd4bf' : '#0d9488'} stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke={isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'} />
+              <XAxis dataKey="name" tick={{ fontSize: 10, fill: isDark ? '#94a3b8' : '#64748b' }} />
+              <YAxis tick={{ fontSize: 10, fill: isDark ? '#94a3b8' : '#64748b' }} />
+              <Tooltip contentStyle={{ background: isDark ? 'rgba(15,23,42,0.92)' : 'rgba(255,255,255,0.95)', border: 'none', borderRadius: '0.75rem', backdropFilter: 'blur(12px)', boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.4)' : '0 4px 16px rgba(0,0,0,0.1)' }} />
+              <Area type="monotone" dataKey="Total" stroke={isDark ? '#2dd4bf' : '#0d9488'} strokeWidth={2.5} fill="url(#totalGrad)" dot={{ r: 4, fill: isDark ? '#2dd4bf' : '#0d9488', stroke: isDark ? '#1a2e2b' : '#fff', strokeWidth: 2 }} activeDot={{ r: 6, stroke: isDark ? '#2dd4bf' : '#0d9488', strokeWidth: 2 }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Top 3 per Angkatan - Minimalist */}
         {top3ByAngkatan.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold gradient-text">Top 3 Siswa per Angkatan</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold gradient-text">Top 3 Siswa per Angkatan</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
               {top3ByAngkatan.map((a) => (
-                <div key={a.angkatan.id} className="glass-card p-5">
-                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    <Trophy className="w-4 h-4 text-amber-500" /> Angkatan {a.angkatan.year}
+                <div key={a.angkatan.id} className="glass-card p-3.5">
+                  <h4 className="text-xs font-semibold mb-2.5 flex items-center gap-1.5 text-muted-foreground">
+                    <Trophy className="w-3.5 h-3.5 text-amber-500" /> Angkatan {a.angkatan.year}
                   </h4>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     {a.students.map((s, i) => (
-                      <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${i === 0 ? 'medal-gold' : i === 1 ? 'medal-silver' : 'medal-bronze'}`}>
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm">
-                          {i + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{s.name}</p>
-                          <p className="text-xs opacity-70">{s.kelas}</p>
-                        </div>
-                        <div className="text-sm font-bold">{s.avg}</div>
+                      <div key={i} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs ${i === 0 ? 'medal-gold' : i === 1 ? 'medal-silver' : 'medal-bronze'}`}>
+                        <span className="w-4 h-4 rounded flex items-center justify-center font-bold text-[10px] flex-shrink-0">{i + 1}</span>
+                        <span className="flex-1 truncate font-medium">{s.name}</span>
+                        <span className="opacity-60 text-[10px]">{s.kelas}</span>
+                        <span className="font-bold tabular-nums">{s.avg}</span>
                       </div>
                     ))}
-                    {a.students.length === 0 && <p className="text-muted-foreground text-xs py-2">Belum ada data</p>}
+                    {a.students.length === 0 && <p className="text-muted-foreground text-[10px] py-1">Belum ada data</p>}
                   </div>
                 </div>
               ))}
