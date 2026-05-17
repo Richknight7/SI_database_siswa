@@ -139,6 +139,12 @@ export default function Home() {
   const [addMapelName, setAddMapelName] = useState('');
   const [addMapelSem, setAddMapelSem] = useState(1);
 
+  // Mapel page state
+  const [activeMapelSem, setActiveMapelSem] = useState<number>(1);
+  const [mapelRpp, setMapelRpp] = useState(10);
+  const [mapelPage, setMapelPage] = useState(1);
+  const [mapelSearch, setMapelSearch] = useState('');
+
   // Kelas page
   const [addKelasName, setAddKelasName] = useState('');
   const [kelasPage, setKelasPage] = useState(1);
@@ -277,12 +283,16 @@ export default function Home() {
   };
 
   const handleLogout = () => {
-    const action = () => { setLoggedIn(false); setCurrentPage('beranda'); setLoginUser(''); setLoginPass(''); setNilaiEdits({}); };
+    const action = () => { setLoggedIn(false); setCurrentPage('beranda'); setLoginUser(''); setLoginPass(''); setNilaiEdits({}); setEditMapelId(null); };
     checkUnsavedAndNavigate(action);
   };
 
+  const hasUnsavedChanges = () => {
+    return Object.keys(nilaiEdits).length > 0 || editMapelId !== null;
+  };
+
   const checkUnsavedAndNavigate = (action: () => void) => {
-    if (Object.keys(nilaiEdits).length > 0) {
+    if (hasUnsavedChanges()) {
       setPendingNavAction(() => action);
       setShowUnsavedWarning(true);
     } else {
@@ -294,7 +304,7 @@ export default function Home() {
     const action = () => {
       setCurrentPage('siswa', angkatanId, year);
       setSiswaSearch(''); setSiswaKelasFilter(''); setSiswaJkFilter(''); setSiswaPage(1);
-      setNilaiEdits({});
+      setNilaiEdits({}); setEditMapelId(null);
       setMobileSidebarOpen(false);
     };
     checkUnsavedAndNavigate(action);
@@ -303,14 +313,10 @@ export default function Home() {
   const navigateToNilai = (angkatanId: number, year: number) => {
     const action = () => {
       setCurrentPage('nilai', angkatanId, year);
-      setNilaiSearch(''); setNilaiSemester(''); setActiveNilaiSem(null); setNilaiPage(1); setNilaiEdits({});
+      setNilaiSearch(''); setNilaiSemester(''); setActiveNilaiSem(null); setNilaiPage(1); setNilaiEdits({}); setEditMapelId(null);
       setMobileSidebarOpen(false);
     };
-    if (currentPage === 'nilai' && Object.keys(nilaiEdits).length > 0) {
-      checkUnsavedAndNavigate(action);
-    } else {
-      action();
-    }
+    checkUnsavedAndNavigate(action);
   };
 
   const openStudentModal = (student?: SiswaRow) => {
@@ -616,7 +622,7 @@ export default function Home() {
             <div className="px-3 py-2 text-xs font-semibold text-teal-400/50 uppercase tracking-wider">Menu Utama</div>
 
             {/* Beranda */}
-            <button onClick={() => checkUnsavedAndNavigate(() => { setCurrentPage('beranda'); setNilaiEdits({}); setMobileSidebarOpen(false); })}
+            <button onClick={() => checkUnsavedAndNavigate(() => { setCurrentPage('beranda'); setNilaiEdits({}); setEditMapelId(null); setMobileSidebarOpen(false); })}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200
                 ${currentPage === 'beranda' ? 'sidebar-item-active text-teal-300' : 'text-white/60 hover:text-white/90 hover:bg-white/5'}`}
             >
@@ -685,19 +691,19 @@ export default function Home() {
             </button>
             {sidebarOpen.ref && (
               <div className="ml-7 space-y-0.5 mt-1">
-                <button onClick={() => checkUnsavedAndNavigate(() => { setCurrentPage('ref-angkatan'); setNilaiEdits({}); setMobileSidebarOpen(false); })}
+                <button onClick={() => checkUnsavedAndNavigate(() => { setCurrentPage('ref-angkatan'); setNilaiEdits({}); setEditMapelId(null); setMobileSidebarOpen(false); })}
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-200
                     ${currentPage === 'ref-angkatan' ? 'sidebar-item-active text-teal-300' : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
                 >
                   <GraduationCap className="w-3.5 h-3.5" /> Tahun Angkatan
                 </button>
-                <button onClick={() => checkUnsavedAndNavigate(() => { setCurrentPage('ref-kelas'); setNilaiEdits({}); setMobileSidebarOpen(false); })}
+                <button onClick={() => checkUnsavedAndNavigate(() => { setCurrentPage('ref-kelas'); setNilaiEdits({}); setEditMapelId(null); setMobileSidebarOpen(false); })}
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-200
                     ${currentPage === 'ref-kelas' ? 'sidebar-item-active text-teal-300' : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
                 >
                   <Users className="w-3.5 h-3.5" /> Data Kelas
                 </button>
-                <button onClick={() => checkUnsavedAndNavigate(() => { setCurrentPage('ref-mapel'); setNilaiEdits({}); setMobileSidebarOpen(false); })}
+                <button onClick={() => checkUnsavedAndNavigate(() => { setCurrentPage('ref-mapel'); setNilaiEdits({}); setEditMapelId(null); setMobileSidebarOpen(false); })}
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-200
                     ${currentPage === 'ref-mapel' ? 'sidebar-item-active text-teal-300' : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
                 >
@@ -708,7 +714,7 @@ export default function Home() {
 
             {/* SISTEM */}
             <div className="px-3 py-2 mt-4 text-xs font-semibold text-teal-400/50 uppercase tracking-wider">Sistem</div>
-            <button onClick={() => checkUnsavedAndNavigate(() => { setCurrentPage('pengaturan'); setNilaiEdits({}); setMobileSidebarOpen(false); })}
+            <button onClick={() => checkUnsavedAndNavigate(() => { setCurrentPage('pengaturan'); setNilaiEdits({}); setEditMapelId(null); setMobileSidebarOpen(false); })}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200
                 ${currentPage === 'pengaturan' ? 'sidebar-item-active text-teal-300' : 'text-white/60 hover:text-white/90 hover:bg-white/5'}`}
             >
@@ -1375,14 +1381,46 @@ export default function Home() {
      ============================================================ */
 
   const renderRefMapel = () => {
-    const mapelRpp = 10;
-    const mapelPageLocal = 1;
-    const totalMapelPages = Math.ceil(mapelList.length / mapelRpp);
-    const paginatedMapel = mapelList.slice((mapelPageLocal - 1) * mapelRpp, mapelPageLocal * mapelRpp);
+    // Group mapel by semester
+    const semesters = [1, 2, 3, 4, 5, 6].filter(s => mapelList.some(m => m.semester === s));
+    const currentSem = activeMapelSem;
+    const semColor = SEM_COLORS[(currentSem - 1) % SEM_COLORS.length];
+
+    // Filter by current semester and search
+    const filteredMapel = mapelList.filter(m => {
+      if (m.semester !== currentSem) return false;
+      if (!mapelSearch) return true;
+      const q = mapelSearch.toLowerCase();
+      return m.name.toLowerCase().includes(q);
+    });
+
+    // Paginate
+    const totalMapelPages = Math.max(1, Math.ceil(filteredMapel.length / mapelRpp));
+    const safePage = Math.min(mapelPage, totalMapelPages);
+    const paginatedMapel = filteredMapel.slice((safePage - 1) * mapelRpp, safePage * mapelRpp);
+
+    // Count mapel per semester
+    const countBySem = (sem: number) => mapelList.filter(m => m.semester === sem).length;
+
+    const handleMapelTabSwitch = (sem: number) => {
+      if (sem === currentSem) return;
+      if (editMapelId !== null) {
+        setPendingNavAction(() => { setActiveMapelSem(sem); setMapelPage(1); setEditMapelId(null); });
+        setShowUnsavedWarning(true);
+      } else {
+        setActiveMapelSem(sem);
+        setMapelPage(1);
+      }
+    };
 
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold gradient-text">Data Mapel</h1>
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="text-2xl font-bold gradient-text">Data Mapel</h1>
+          <span className="text-sm text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
+            {mapelList.length} mapel total
+          </span>
+        </div>
 
         {/* Add form */}
         <div className="glass-card p-5">
@@ -1401,68 +1439,129 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Table */}
+        {/* Search */}
+        <div className="glass-card p-4">
+          <div className="flex flex-wrap gap-3 items-center">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input value={mapelSearch} onChange={e => { setMapelSearch(e.target.value); setMapelPage(1); }}
+                placeholder="Cari nama mapel..."
+                className="glass-input w-full pl-9 pr-4 py-2 text-sm outline-none" />
+            </div>
+            <span className="text-sm text-muted-foreground">{filteredMapel.length} mapel</span>
+            {editMapelId !== null && (
+              <span className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                Sedang mengedit
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Semester Tabs */}
+        <div className="glass-card p-3">
+          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1">
+            <BookOpen className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <span className="text-xs text-muted-foreground font-medium flex-shrink-0">Semester:</span>
+            {semesters.map(sem => {
+              const sc = SEM_COLORS[(sem - 1) % SEM_COLORS.length];
+              const isActive = sem === currentSem;
+              return (
+                <button key={sem} onClick={() => handleMapelTabSwitch(sem)}
+                  className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border-2
+                    ${isActive ? 'shadow-md scale-105' : 'hover:scale-102 opacity-60 hover:opacity-90'}`}
+                  style={{
+                    backgroundColor: isActive ? sc.hd + '18' : 'transparent',
+                    borderColor: isActive ? sc.hd + '50' : 'transparent',
+                    color: isActive ? sc.hd : undefined,
+                    boxShadow: isActive ? `0 2px 12px ${sc.hd}20` : undefined,
+                  }}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: sc.hd }} />
+                    Semester {sem}
+                    <span className="ml-1 text-[10px] opacity-70">({countBySem(sem)})</span>
+                  </span>
+                </button>
+              );
+            })}
+            {semesters.length === 0 && (
+              <span className="text-xs text-muted-foreground">Belum ada data mapel</span>
+            )}
+          </div>
+        </div>
+
+        {/* Per-Semester Table */}
         <div className="glass-card overflow-hidden">
+          {/* Semester Header */}
+          <div className="px-4 py-3 border-b-2 flex items-center justify-between"
+            style={{ borderColor: semColor.hd + '30', backgroundColor: semColor.bg + '40' }}>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: semColor.hd }} />
+              <span className="text-sm font-bold" style={{ color: semColor.hd }}>Semester {currentSem}</span>
+              <span className="text-xs text-muted-foreground ml-2">{filteredMapel.length} mapel</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <select value={mapelRpp} onChange={e => { setMapelRpp(parseInt(e.target.value)); setMapelPage(1); }}
+                className="glass-input px-2 py-1 text-xs outline-none bg-transparent">
+                {[5, 10, 25, 50].map(r => <option key={r} value={r} className="bg-background">{r} / hal</option>)}
+              </select>
+            </div>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="bg-teal-500/8 dark:bg-teal-500/5">
-                  <th className="text-left py-3 px-4 font-semibold text-xs border border-border/20 w-10">#</th>
-                  <th className="text-left py-3 px-4 font-semibold text-xs border border-border/20">Nama Mapel</th>
-                  <th className="text-center py-3 px-4 font-semibold text-xs border border-border/20">Semester</th>
-                  <th className="text-center py-3 px-4 font-semibold text-xs border border-border/20 w-24">Aksi</th>
+                <tr style={{ backgroundColor: semColor.bg + '60' }}>
+                  <th className="text-center py-2.5 px-2 font-bold text-xs border border-border/30 w-10"
+                    style={{ color: semColor.hd }}>No</th>
+                  <th className="text-left py-2.5 px-4 font-bold text-xs border border-border/30"
+                    style={{ color: semColor.hd }}>Nama Mapel</th>
+                  <th className="text-center py-2.5 px-4 font-bold text-xs border border-border/30 w-24"
+                    style={{ color: semColor.hd }}>Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedMapel.length === 0 ? (
-                  <tr><td colSpan={4} className="py-12 text-center text-muted-foreground border border-border/10">Tidak ada data mapel</td></tr>
+                  <tr>
+                    <td colSpan={3} className="py-12 text-center text-muted-foreground border border-border/10">
+                      Tidak ada data mapel untuk Semester {currentSem}
+                    </td>
+                  </tr>
                 ) : paginatedMapel.map((m, i) => (
-                  <tr key={m.id} className="glass-table-row">
-                    <td className="py-2.5 px-4 text-muted-foreground border border-border/10">{i + 1}</td>
+                  <tr key={m.id} className="glass-table-row border-b border-border/15 hover:bg-teal-500/3 transition-colors">
+                    <td className="py-2.5 px-2 text-center text-muted-foreground text-xs border border-border/10">
+                      {(safePage - 1) * mapelRpp + i + 1}
+                    </td>
                     <td className="py-2.5 px-4 border border-border/10">
                       {editMapelId === m.id ? (
                         <input value={editMapelName} onChange={e => setEditMapelName(e.target.value)}
                           className="glass-input px-3 py-1 text-sm outline-none w-full"
-                          onKeyDown={e => e.key === 'Enter' && handleUpdateMapel()} />
+                          onKeyDown={e => e.key === 'Enter' && handleUpdateMapel()}
+                          autoFocus />
                       ) : (
                         <span className="font-medium">{m.name}</span>
-                      )}
-                    </td>
-                    <td className="py-2.5 px-4 text-center border border-border/10">
-                      {editMapelId === m.id ? (
-                        <select value={editMapelSem} onChange={e => setEditMapelSem(parseInt(e.target.value))}
-                          className="glass-input px-3 py-1 text-sm outline-none bg-transparent">
-                          {[1, 2, 3, 4, 5, 6].map(s => <option key={s} value={s} className="bg-background">Sem {s}</option>)}
-                        </select>
-                      ) : (
-                        <span className="inline-block px-2.5 py-1 rounded-full text-xs font-medium"
-                          style={{
-                            backgroundColor: SEM_COLORS[(m.semester - 1) % SEM_COLORS.length].bg,
-                            color: SEM_COLORS[(m.semester - 1) % SEM_COLORS.length].hd,
-                          }}>
-                          Sem {m.semester}
-                        </span>
                       )}
                     </td>
                     <td className="py-2.5 px-4 border border-border/10">
                       <div className="flex items-center justify-center gap-1">
                         {editMapelId === m.id ? (
                           <>
-                            <button onClick={handleUpdateMapel} className="p-1.5 rounded-lg hover:bg-teal-500/10 text-teal-600 dark:text-teal-400 transition">
+                            <button onClick={handleUpdateMapel} className="p-1.5 rounded-lg hover:bg-teal-500/10 text-teal-600 dark:text-teal-400 transition" title="Simpan">
                               <Save className="w-4 h-4" />
                             </button>
-                            <button onClick={() => setEditMapelId(null)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition">
+                            <button onClick={() => setEditMapelId(null)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition" title="Batal">
                               <X className="w-4 h-4" />
                             </button>
                           </>
                         ) : (
                           <>
                             <button onClick={() => { setEditMapelId(m.id); setEditMapelName(m.name); setEditMapelSem(m.semester); }}
-                              className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 transition">
+                              className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 transition" title="Edit">
                               <Edit className="w-4 h-4" />
                             </button>
                             <button onClick={() => confirmDelete('mapel', m.id, m.name)}
-                              className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500 transition">
+                              className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500 transition" title="Hapus">
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </>
@@ -1473,6 +1572,34 @@ export default function Home() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Pagination - Below the table */}
+          <div className="flex items-center justify-between px-4 py-3 border-t-2 border-border/15">
+            <span className="text-xs text-muted-foreground">
+              Menampilkan {filteredMapel.length === 0 ? 0 : (safePage - 1) * mapelRpp + 1}–{Math.min(safePage * mapelRpp, filteredMapel.length)} dari {filteredMapel.length} mapel
+            </span>
+            <div className="flex items-center gap-1">
+              <button onClick={() => setMapelPage(1)} disabled={safePage === 1}
+                className="px-2 py-1 rounded-lg text-xs glass-btn disabled:opacity-30">⟪</button>
+              <button onClick={() => setMapelPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
+                className="px-3 py-1 rounded-lg text-xs glass-btn disabled:opacity-30">Prev</button>
+              {Array.from({ length: totalMapelPages }, (_, idx) => idx + 1)
+                .filter(p => p === 1 || p === totalMapelPages || Math.abs(p - safePage) <= 1)
+                .map((p, idx, arr) => (
+                  <React.Fragment key={p}>
+                    {idx > 0 && arr[idx - 1] !== p - 1 && <span className="text-xs text-muted-foreground px-1">…</span>}
+                    <button onClick={() => setMapelPage(p)}
+                      className={`px-2.5 py-1 rounded-lg text-xs transition ${p === safePage ? 'bg-teal-500 text-white font-bold' : 'glass-btn'}`}>
+                      {p}
+                    </button>
+                  </React.Fragment>
+                ))}
+              <button onClick={() => setMapelPage(p => Math.min(totalMapelPages, p + 1))} disabled={safePage === totalMapelPages}
+                className="px-3 py-1 rounded-lg text-xs glass-btn disabled:opacity-30">Next</button>
+              <button onClick={() => setMapelPage(totalMapelPages)} disabled={safePage === totalMapelPages}
+                className="px-2 py-1 rounded-lg text-xs glass-btn disabled:opacity-30">⟫</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1945,8 +2072,8 @@ export default function Home() {
   const renderUnsavedWarning = () => {
     if (!showUnsavedWarning) return null;
 
-    // Build a list of changed values with student names and mapel names
-    const changes: { siswaName: string; mapelName: string; oldValue: number; newValue: number }[] = [];
+    // Build a list of changed nilai values
+    const nilaiChanges: { siswaName: string; mapelName: string; oldValue: number; newValue: number }[] = [];
     if (nilaiData) {
       Object.entries(nilaiEdits).forEach(([key, newValue]) => {
         const [siswaIdStr, mapelIdStr] = key.split('-');
@@ -1955,15 +2082,18 @@ export default function Home() {
         const siswa = nilaiData.siswa.find(s => s.id === siswaId);
         const mapel = mapelList.find(m => m.id === mapelId);
         if (siswa && mapel) {
-          changes.push({
-            siswaName: siswa.name,
-            mapelName: mapel.name,
-            oldValue: siswa.nilaiMap[mapelId] ?? 0,
-            newValue,
-          });
+          nilaiChanges.push({ siswaName: siswa.name, mapelName: mapel.name, oldValue: siswa.nilaiMap[mapelId] ?? 0, newValue });
         }
       });
     }
+
+    // Check for mapel edit
+    const editingMapel = editMapelId ? mapelList.find(m => m.id === editMapelId) : null;
+
+    const hasNilaiChanges = nilaiChanges.length > 0;
+    const hasMapelChanges = editingMapel !== null && editingMapel !== undefined;
+
+    if (!hasNilaiChanges && !hasMapelChanges) return null;
 
     return (
       <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" onClick={() => setShowUnsavedWarning(false)}>
@@ -1976,40 +2106,53 @@ export default function Home() {
             </div>
             <div>
               <h3 className="text-lg font-bold text-foreground">Perubahan Belum Disimpan</h3>
-              <p className="text-xs text-muted-foreground">Anda memiliki perubahan nilai yang belum disimpan.</p>
+              <p className="text-xs text-muted-foreground">Anda memiliki perubahan yang belum disimpan.</p>
             </div>
           </div>
 
-          {/* Changes list */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar mb-4 rounded-xl border border-border/20 bg-muted/20">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-border/20 bg-muted/30">
-                  <th className="text-left py-2 px-3 font-semibold">Nama Siswa</th>
-                  <th className="text-left py-2 px-3 font-semibold">Mata Pelajaran</th>
-                  <th className="text-center py-2 px-3 font-semibold">Nilai Lama</th>
-                  <th className="text-center py-2 px-3 font-semibold">Nilai Baru</th>
-                </tr>
-              </thead>
-              <tbody>
-                {changes.slice(0, 20).map((c, i) => (
-                  <tr key={i} className="border-b border-border/10 hover:bg-muted/20 transition-colors">
-                    <td className="py-1.5 px-3 font-medium truncate max-w-[120px]">{c.siswaName}</td>
-                    <td className="py-1.5 px-3 text-muted-foreground truncate max-w-[100px]">{c.mapelName}</td>
-                    <td className="py-1.5 px-3 text-center text-muted-foreground">{c.oldValue}</td>
-                    <td className="py-1.5 px-3 text-center font-semibold text-amber-600 dark:text-amber-400">{c.newValue}</td>
+          {/* Mapel edit warning */}
+          {hasMapelChanges && (
+            <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+              <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-1">Data Mapel Sedang Diedit</p>
+              <p className="text-xs text-muted-foreground">
+                Anda sedang mengedit mata pelajaran <span className="font-bold text-foreground">&quot;{editMapelName}&quot;</span> (Semester {editMapelSem}).
+                Perubahan akan hilang jika Anda melanjutkan.
+              </p>
+            </div>
+          )}
+
+          {/* Nilai changes list */}
+          {hasNilaiChanges && (
+            <div className="flex-1 overflow-y-auto custom-scrollbar mb-4 rounded-xl border border-border/20 bg-muted/20">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-border/20 bg-muted/30">
+                    <th className="text-left py-2 px-3 font-semibold">Nama Siswa</th>
+                    <th className="text-left py-2 px-3 font-semibold">Mata Pelajaran</th>
+                    <th className="text-center py-2 px-3 font-semibold">Nilai Lama</th>
+                    <th className="text-center py-2 px-3 font-semibold">Nilai Baru</th>
                   </tr>
-                ))}
-                {changes.length > 20 && (
-                  <tr>
-                    <td colSpan={4} className="py-2 px-3 text-center text-muted-foreground">
-                      ... dan {changes.length - 20} perubahan lainnya
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {nilaiChanges.slice(0, 20).map((c, i) => (
+                    <tr key={i} className="border-b border-border/10 hover:bg-muted/20 transition-colors">
+                      <td className="py-1.5 px-3 font-medium truncate max-w-[120px]">{c.siswaName}</td>
+                      <td className="py-1.5 px-3 text-muted-foreground truncate max-w-[100px]">{c.mapelName}</td>
+                      <td className="py-1.5 px-3 text-center text-muted-foreground">{c.oldValue}</td>
+                      <td className="py-1.5 px-3 text-center font-semibold text-amber-600 dark:text-amber-400">{c.newValue}</td>
+                    </tr>
+                  ))}
+                  {nilaiChanges.length > 20 && (
+                    <tr>
+                      <td colSpan={4} className="py-2 px-3 text-center text-muted-foreground">
+                        ... dan {nilaiChanges.length - 20} perubahan lainnya
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           {/* Warning text */}
           <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2.5 mb-4">
@@ -2027,6 +2170,7 @@ export default function Home() {
             </button>
             <button onClick={() => {
               setShowUnsavedWarning(false);
+              setEditMapelId(null);
               if (pendingNavAction) {
                 pendingNavAction();
                 setPendingNavAction(null);
