@@ -455,6 +455,16 @@
   min-height: 100vh;
 }
 
+/* ===== Custom Size ===== */
+
+.w-18 {
+  width: 4.5rem;
+}
+
+.h-18 {
+  height: 4.5rem;
+}
+
 /* ===== Table Glass Row ===== */
 
 .glass-table-row {

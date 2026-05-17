@@ -11,7 +11,7 @@ import {
   Home as HomeIcon, GraduationCap, Users, BookOpen, Settings, ChevronDown, ChevronRight, Moon, Sun, LogOut,
   Search, Plus, Trash2, Edit, Eye, EyeOff, Download, Upload, Save, X, FileText, Award, Calendar, MapPin,
   Heart, Quote, User, Phone, Mail, Building, Hash, Shield, Star, Trophy, Medal, LayoutDashboard,
-  Menu, ChevronLeft, School,
+  Menu, ChevronLeft, School, AlertTriangle,
 } from 'lucide-react';
 
 /* ============================================================
@@ -146,6 +146,10 @@ export default function Home() {
   // Angkatan add
   const [addAngkatanYear, setAddAngkatanYear] = useState('');
 
+  // Unsaved changes warning
+  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+  const [pendingNavAction, setPendingNavAction] = useState<(() => void) | null>(null);
+
   // Mobile sidebar
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -272,18 +276,41 @@ export default function Home() {
     setLoading(false);
   };
 
-  const handleLogout = () => { setLoggedIn(false); setCurrentPage('beranda'); setLoginUser(''); setLoginPass(''); };
+  const handleLogout = () => {
+    const action = () => { setLoggedIn(false); setCurrentPage('beranda'); setLoginUser(''); setLoginPass(''); setNilaiEdits({}); };
+    checkUnsavedAndNavigate(action);
+  };
+
+  const checkUnsavedAndNavigate = (action: () => void) => {
+    if (Object.keys(nilaiEdits).length > 0) {
+      setPendingNavAction(() => action);
+      setShowUnsavedWarning(true);
+    } else {
+      action();
+    }
+  };
 
   const navigateToSiswa = (angkatanId: number, year: number) => {
-    setCurrentPage('siswa', angkatanId, year);
-    setSiswaSearch(''); setSiswaKelasFilter(''); setSiswaJkFilter(''); setSiswaPage(1);
-    setMobileSidebarOpen(false);
+    const action = () => {
+      setCurrentPage('siswa', angkatanId, year);
+      setSiswaSearch(''); setSiswaKelasFilter(''); setSiswaJkFilter(''); setSiswaPage(1);
+      setNilaiEdits({});
+      setMobileSidebarOpen(false);
+    };
+    checkUnsavedAndNavigate(action);
   };
 
   const navigateToNilai = (angkatanId: number, year: number) => {
-    setCurrentPage('nilai', angkatanId, year);
-    setNilaiSearch(''); setNilaiSemester(''); setActiveNilaiSem(null); setNilaiPage(1); setNilaiEdits({});
-    setMobileSidebarOpen(false);
+    const action = () => {
+      setCurrentPage('nilai', angkatanId, year);
+      setNilaiSearch(''); setNilaiSemester(''); setActiveNilaiSem(null); setNilaiPage(1); setNilaiEdits({});
+      setMobileSidebarOpen(false);
+    };
+    if (currentPage === 'nilai' && Object.keys(nilaiEdits).length > 0) {
+      checkUnsavedAndNavigate(action);
+    } else {
+      action();
+    }
   };
 
   const openStudentModal = (student?: SiswaRow) => {
@@ -489,28 +516,28 @@ export default function Home() {
         <div className="glass-card-strong w-full max-w-md p-8 relative">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center mb-4 shadow-lg shadow-teal-500/20">
-              <GraduationCap className="w-9 h-9 text-white" />
+            <div className="w-18 h-18 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center mb-5 shadow-lg shadow-teal-500/25">
+              <GraduationCap className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-white">Sistem Informasi Siswa</h1>
-            <p className="text-teal-200/60 text-sm mt-1">Student Database Management</p>
+            <h1 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-lg" style={{ textShadow: '0 2px 12px rgba(13,148,136,0.35)' }}>Sistem Informasi Siswa</h1>
+            <p className="text-teal-200/80 text-sm mt-2 font-semibold tracking-wide uppercase">Student Database Management</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block text-teal-200/80 text-sm mb-2 font-medium">Username</label>
+              <label className="block text-teal-100 text-sm mb-2 font-bold tracking-wide uppercase">Username</label>
               <input
                 type="text" value={loginUser} onChange={e => setLoginUser(e.target.value)}
-                className="glass-input w-full px-4 py-3 text-white placeholder-white/30 outline-none"
+                className="glass-input w-full px-4 py-3 text-white font-semibold placeholder-white/25 outline-none text-base"
                 placeholder="Masukkan username"
               />
             </div>
             <div>
-              <label className="block text-teal-200/80 text-sm mb-2 font-medium">Password</label>
+              <label className="block text-teal-100 text-sm mb-2 font-bold tracking-wide uppercase">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'} value={loginPass} onChange={e => setLoginPass(e.target.value)}
-                  className="glass-input w-full px-4 py-3 pr-12 text-white placeholder-white/30 outline-none"
+                  className="glass-input w-full px-4 py-3 pr-12 text-white font-semibold placeholder-white/25 outline-none text-base"
                   placeholder="Masukkan password"
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
@@ -528,16 +555,16 @@ export default function Home() {
 
             <button
               type="submit" disabled={loading}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 text-white font-semibold
-                hover:from-teal-400 hover:to-emerald-500 transition-all duration-300 shadow-lg shadow-teal-500/25
-                disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-teal-500/40"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 text-white font-bold text-base tracking-wide
+                hover:from-teal-400 hover:to-emerald-500 transition-all duration-300 shadow-lg shadow-teal-500/30
+                disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-teal-500/50"
             >
               {loading ? 'Memproses...' : 'Masuk'}
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-teal-200/40 text-xs">Hint: admin / admin123</p>
+            <p className="text-teal-200/60 text-xs font-medium">Hint: admin / admin123</p>
           </div>
         </div>
       </div>
@@ -581,7 +608,7 @@ export default function Home() {
             <div className="px-3 py-2 text-xs font-semibold text-teal-400/50 uppercase tracking-wider">Menu Utama</div>
 
             {/* Beranda */}
-            <button onClick={() => { setCurrentPage('beranda'); setMobileSidebarOpen(false); }}
+            <button onClick={() => checkUnsavedAndNavigate(() => { setCurrentPage('beranda'); setNilaiEdits({}); setMobileSidebarOpen(false); })}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200
                 ${currentPage === 'beranda' ? 'sidebar-item-active text-teal-300' : 'text-white/60 hover:text-white/90 hover:bg-white/5'}`}
             >
@@ -650,19 +677,19 @@ export default function Home() {
             </button>
             {sidebarOpen.ref && (
               <div className="ml-7 space-y-0.5 mt-1">
-                <button onClick={() => { setCurrentPage('ref-angkatan'); setMobileSidebarOpen(false); }}
+                <button onClick={() => checkUnsavedAndNavigate(() => { setCurrentPage('ref-angkatan'); setNilaiEdits({}); setMobileSidebarOpen(false); })}
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-200
                     ${currentPage === 'ref-angkatan' ? 'sidebar-item-active text-teal-300' : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
                 >
                   <GraduationCap className="w-3.5 h-3.5" /> Tahun Angkatan
                 </button>
-                <button onClick={() => { setCurrentPage('ref-kelas'); setMobileSidebarOpen(false); }}
+                <button onClick={() => checkUnsavedAndNavigate(() => { setCurrentPage('ref-kelas'); setNilaiEdits({}); setMobileSidebarOpen(false); })}
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-200
                     ${currentPage === 'ref-kelas' ? 'sidebar-item-active text-teal-300' : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
                 >
                   <Users className="w-3.5 h-3.5" /> Data Kelas
                 </button>
-                <button onClick={() => { setCurrentPage('ref-mapel'); setMobileSidebarOpen(false); }}
+                <button onClick={() => checkUnsavedAndNavigate(() => { setCurrentPage('ref-mapel'); setNilaiEdits({}); setMobileSidebarOpen(false); })}
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-200
                     ${currentPage === 'ref-mapel' ? 'sidebar-item-active text-teal-300' : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
                 >
@@ -673,7 +700,7 @@ export default function Home() {
 
             {/* SISTEM */}
             <div className="px-3 py-2 mt-4 text-xs font-semibold text-teal-400/50 uppercase tracking-wider">Sistem</div>
-            <button onClick={() => { setCurrentPage('pengaturan'); setMobileSidebarOpen(false); }}
+            <button onClick={() => checkUnsavedAndNavigate(() => { setCurrentPage('pengaturan'); setNilaiEdits({}); setMobileSidebarOpen(false); })}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200
                 ${currentPage === 'pengaturan' ? 'sidebar-item-active text-teal-300' : 'text-white/60 hover:text-white/90 hover:bg-white/5'}`}
             >
@@ -1074,7 +1101,10 @@ export default function Home() {
               const sc = SEM_COLORS[(sem - 1) % SEM_COLORS.length];
               const isActive = sem === currentSem;
               return (
-                <button key={sem} onClick={() => { setActiveNilaiSem(sem); setNilaiPage(1); }}
+                <button key={sem} onClick={() => {
+                  if (sem === currentSem) return;
+                  checkUnsavedAndNavigate(() => { setActiveNilaiSem(sem); setNilaiPage(1); setNilaiEdits({}); });
+                }}
                   className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border-2
                     ${isActive
                       ? 'shadow-md scale-105'
@@ -1901,6 +1931,109 @@ export default function Home() {
   };
 
   /* ============================================================
+     UNSAVED CHANGES WARNING MODAL
+     ============================================================ */
+
+  const renderUnsavedWarning = () => {
+    if (!showUnsavedWarning) return null;
+
+    // Build a list of changed values with student names and mapel names
+    const changes: { siswaName: string; mapelName: string; oldValue: number; newValue: number }[] = [];
+    if (nilaiData) {
+      Object.entries(nilaiEdits).forEach(([key, newValue]) => {
+        const [siswaIdStr, mapelIdStr] = key.split('-');
+        const siswaId = parseInt(siswaIdStr);
+        const mapelId = parseInt(mapelIdStr);
+        const siswa = nilaiData.siswa.find(s => s.id === siswaId);
+        const mapel = mapelList.find(m => m.id === mapelId);
+        if (siswa && mapel) {
+          changes.push({
+            siswaName: siswa.name,
+            mapelName: mapel.name,
+            oldValue: siswa.nilaiMap[mapelId] ?? 0,
+            newValue,
+          });
+        }
+      });
+    }
+
+    return (
+      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" onClick={() => setShowUnsavedWarning(false)}>
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+        <div className="glass-modal relative w-full max-w-lg p-6 max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-6 h-6 text-amber-500" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-foreground">Perubahan Belum Disimpan</h3>
+              <p className="text-xs text-muted-foreground">Anda memiliki perubahan nilai yang belum disimpan.</p>
+            </div>
+          </div>
+
+          {/* Changes list */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar mb-4 rounded-xl border border-border/20 bg-muted/20">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-border/20 bg-muted/30">
+                  <th className="text-left py-2 px-3 font-semibold">Nama Siswa</th>
+                  <th className="text-left py-2 px-3 font-semibold">Mata Pelajaran</th>
+                  <th className="text-center py-2 px-3 font-semibold">Nilai Lama</th>
+                  <th className="text-center py-2 px-3 font-semibold">Nilai Baru</th>
+                </tr>
+              </thead>
+              <tbody>
+                {changes.slice(0, 20).map((c, i) => (
+                  <tr key={i} className="border-b border-border/10 hover:bg-muted/20 transition-colors">
+                    <td className="py-1.5 px-3 font-medium truncate max-w-[120px]">{c.siswaName}</td>
+                    <td className="py-1.5 px-3 text-muted-foreground truncate max-w-[100px]">{c.mapelName}</td>
+                    <td className="py-1.5 px-3 text-center text-muted-foreground">{c.oldValue}</td>
+                    <td className="py-1.5 px-3 text-center font-semibold text-amber-600 dark:text-amber-400">{c.newValue}</td>
+                  </tr>
+                ))}
+                {changes.length > 20 && (
+                  <tr>
+                    <td colSpan={4} className="py-2 px-3 text-center text-muted-foreground">
+                      ... dan {changes.length - 20} perubahan lainnya
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Warning text */}
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2.5 mb-4">
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              Jika Anda melanjutkan, semua perubahan yang belum disimpan akan <span className="font-bold">dihapus</span>.
+              Klik &quot;Batal&quot; untuk kembali menyimpan perubahan Anda.
+            </p>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-3">
+            <button onClick={() => setShowUnsavedWarning(false)}
+              className="glass-btn flex-1 px-4 py-2.5 text-sm font-medium flex items-center justify-center gap-2">
+              <X className="w-4 h-4" /> Batal
+            </button>
+            <button onClick={() => {
+              setShowUnsavedWarning(false);
+              if (pendingNavAction) {
+                pendingNavAction();
+                setPendingNavAction(null);
+              }
+            }}
+              className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl bg-amber-500 text-white hover:bg-amber-600 transition flex items-center justify-center gap-2">
+              Lanjut Tanpa Simpan
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  /* ============================================================
      CONTENT ROUTER
      ============================================================ */
 
@@ -1973,6 +2106,7 @@ export default function Home() {
       {renderCvModal()}
       {renderImportModal()}
       {renderDeleteConfirm()}
+      {renderUnsavedWarning()}
     </div>
   );
 }
