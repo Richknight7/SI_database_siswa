@@ -253,6 +253,7 @@
   inset: 0;
   z-index: -1;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .bg-gradient-mesh::before,
@@ -300,10 +301,11 @@
 }
 
 .bg-blob-1, .bg-blob-2, .bg-blob-3 {
-  position: absolute;
+  position: fixed;
   border-radius: 50%;
   filter: blur(80px);
   pointer-events: none;
+  z-index: -1;
 }
 
 .bg-blob-1 {

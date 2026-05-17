@@ -1830,7 +1830,7 @@ export default function Home() {
      ============================================================ */
 
   return (
-    <div className="min-h-screen flex relative">
+    <div className="min-h-screen flex relative overflow-hidden">
       {/* Background Gradient Mesh */}
       <div className="bg-gradient-mesh" />
       <div className="bg-blob-1" />
