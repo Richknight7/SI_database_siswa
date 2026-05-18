@@ -7,11 +7,11 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient() {
-  // Jika ada DATABASE_AUTH_TOKEN, berarti pakai Turso (cloud)
-  if (process.env.DATABASE_AUTH_TOKEN) {
+  // Jika ada TURSO_DATABASE_URL, berarti pakai Turso (cloud)
+  if (process.env.TURSO_DATABASE_URL) {
     const libsql = createClient({
-      url: process.env.DATABASE_URL!,
-      authToken: process.env.DATABASE_AUTH_TOKEN!,
+      url: process.env.TURSO_DATABASE_URL,
+      authToken: process.env.TURSO_AUTH_TOKEN || '',
     })
 
     const adapter = new PrismaLibSQL(libsql)
@@ -21,7 +21,7 @@ function createPrismaClient() {
     })
   }
 
-  // Jika tidak ada token, pakai SQLite lokal (development)
+  // Jika tidak ada, pakai SQLite lokal (development)
   return new PrismaClient({
     log: ['query'],
   })
